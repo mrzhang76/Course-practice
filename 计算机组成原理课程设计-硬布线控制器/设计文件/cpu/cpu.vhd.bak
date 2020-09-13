@@ -1,0 +1,1207 @@
+LIBRARY ieee;
+
+USE ieee.std_logic_1164.all;
+
+ 
+
+ENTITY cpu IS
+
+PORT(
+ SW:IN std_logic_vector(2 Downto 0);--向量形式，类似数组
+ --SW2-SW0表示SWA SWB SWC，选择实验装置的模式
+ IR:IN std_logic_vector(7 Downto 4);
+ --IR7-IR4是指令的前四位，作为指令的唯一标识代表不同的指令
+ W1,W2,W3:IN std_logic;
+ --W1,W2,W3是硬连线控制器的时钟周期
+ 
+ C,Z,CLR,T3:IN std_logic;
+ --C为1表示有进位
+ --Z为1表示运算结果为03
+ --CLR为复位信号
+ --T3是第三个时钟周期的信号，影响许多操作
+ 
+ ARINC,CIN,DRW,LPC,LAR,LIR,LDZ,LDC,PCINC,PCADD,SELCTL,M,MEMW,STOP:OUT std_logic;
+ --ARINC为1时，在T3的上升沿，AR加一
+ --CIN是ALU来自低位的进位信号
+ --DRW为1时，在T3上升沿对RD1,RD0选中的寄存器进行写操作，将数据总线DBUS上的数D7-D0写入选中的寄存器
+ --LPC为1时，在T3的上升沿，将数据总线DBUS上的D7-D0写入PC
+ --LAR为1时，在T3的上升沿，将数据总线DBUS上的D7-D0写入AR
+ --LIR为1时，在T3的上升沿将从双端数据端口RAM的右端口读出的指令INS7-INS0写入指令寄存器IR。读出的存储器单元由PC7-PC0指定。
+ --LDZ为1时，如果运算结果为0，在T3的上升沿将1写入Z标志寄存器，如果不为零就写0
+ --LDC为1时，在T3的上升沿将得到的进位写入C标志寄存器
+ --PCINC为1时，在T3的上升沿PC加1
+ --PCADD为1时，将当前的PC值加上相对转移量形成新的PC（微指令第39位）【用于JC、JZ跳转】
+ --SELCTL选择是用ALU的A端口还是B端口的四选一选择器（AB两端口各自都有一个四选一选择器来选择把R3-R0的哪个数送到端口）
+ --M为1时表示ALU进行逻辑运算，为0时表示ALU进行算术运算
+ --MEMW为一时，T2为一期间将数据总线DBUS上的D7-D0写入双端口RAM，写入的存储器单元由AR7-AR0指定
+ --STOP为1时，在T3结束后时序发生器停止输出节拍脉冲，停机
+ 
+ SHORT,LONG,ABUS,SBUS,MBUS:OUT std_logic;
+ --SHORT告诉时序发生器下一个还产生W1，不产生W2
+ --LONG告诉时序发生器下一个产生W3
+ --SBUS是控制数据开关的数据能否送到数据总线的
+ --ABUS是控制ALU出来的数据能否送到数据总线的
+ --MBUS为1时，将双端口RAM的左端口数据送到数据总线DBUS上
+ S,SEL:OUT std_logic_vector(3 Downto 0));
+ --S3-S0和M一起选择ALU具体进行哪种运算
+ --SEL0,SEL1相当于RS0,RS1，选择送往ALU的B端口的寄存器（R3-R0中的一个）
+ --SEL2,SEL3相当于RD0,RD1，选择送往ALU的B端口的寄存器（R3-R0中的一个）
+
+END cpu;
+
+
+ARCHITECTURE hcu OF cpu IS --hcu=hardwired control unit
+
+	SIGNAL ST0:std_logic;
+	--对于一些控制台操作，需要4个节拍电位才能完成规定的功能。
+	--为了满足这种情况，我们将控制台操作化为两条机器指令的节拍。
+	--为了区分控制台操作的两个不同阶段，我们我们加了个ST0内部信号作为标志位，
+	--当ST0=0时，执行操作的第一阶段；当ST0=1时，执行操作的第二阶段
+	SIGNAL SST0:std_logic;
+	--SST0为1时，且T3的下降沿到来时，ST0发生翻转。
+	
+	BEGIN
+
+		PROCESS(ST0,SST0,SW,IR,CLR,T3,W1,W2,W3,C,Z)   --敏感信号表
+
+		BEGIN
+
+			IF (CLR='0') THEN                     --clear信号复位
+
+					ST0<='0';                       
+
+					SST0<='0';                      --复位的话 ST0 ST00这种半标志也清零了
+
+					CIN<='0';                             
+
+					DRW<='0';
+
+					LPC<='0';
+
+					LAR<='0';
+
+					LIR<='0';
+
+					LDZ<='0';
+
+					LDC<='0';
+
+					PCINC<='0';
+
+					PCADD<='0';
+
+					SELCTL<='0';
+
+					M<='0';
+
+					S<="0000";
+
+					SEL<="0000";
+
+					MEMW<='0';
+
+					STOP<='0';
+
+					SHORT<='0';
+
+					LONG<='0';
+
+					ABUS<='0';
+
+					SBUS<='0';
+
+					MBUS<='0';
+
+					ARINC<='0';
+
+				ELSE
+
+					CIN<='0';                              --初始化
+
+					DRW<='0';
+
+					LPC<='0';
+
+					LAR<='0';
+
+					LIR<='0';
+
+					LDZ<='0';
+
+					LDC<='0';
+
+					PCINC<='0';
+
+					PCADD<='0';
+
+					SELCTL<='0';
+
+					M<='0';
+
+					S<="0000";
+
+					SEL<="0000";
+
+					MEMW<='0';
+
+					STOP<='0';
+
+					SHORT<='0';
+
+					LONG<='0';
+
+					ABUS<='0';
+
+					SBUS<='0';
+
+					MBUS<='0';
+
+					ARINC<='0';
+
+					SST0<=(NOT ST0)AND ((SW(2)AND(NOT(SW(1)))AND(NOT SW(0))AND W2)OR((NOT SW(2))AND SW(1)AND(NOT SW(0))AND W1)OR((NOT SW(2))
+
+								AND (NOT SW(1)) AND SW(0) AND W1));
+
+				--用译码形式表示SST0
+				--组合逻辑的用处是锁定SST0出现的流程框
+				
+				IF(SST0='1' ) THEN
+
+					IF (T3'EVENT AND (T3='0'))THEN --T3下降沿且SST0是1 那么ST0发生翻转 说明是执行了那个需要四个节拍的指令
+													       --一个流程最多执行3个节拍，因此四节拍的执行不完，需要分两次过程完成
+						ST0<='1';						 --上一次过程执行了一半了用SST0记录一下,下次再执行的时候就可以用SST0实现继续执行
+															 --因此推断CLR是为0的时候进行复位
+					END IF;
+
+				END IF;
+
+				CASE SW IS
+
+				--根据硬连线控制器参考流程图采用流程的形式
+
+				WHEN "100" =>   --写寄存器
+
+					IF (ST0='0') THEN
+
+						IF (W1='1') THEN
+
+							SBUS<='1';
+
+							SEL<="0011";
+
+							SELCTL<='1';
+
+							DRW<='1';
+
+							STOP<='1';
+
+						END IF;
+
+						IF (W2='1') THEN
+
+							SBUS<='1';
+
+							SEL<="0100";
+
+							SELCTL<='1';
+
+							DRW<='1';
+
+							STOP<='1';
+
+							SST0<='1';
+
+						END IF;
+
+					END IF;
+
+					IF (ST0='1') THEN
+
+						IF (W1='1') THEN
+
+							SBUS<='1';
+
+							SEL<="1001";
+
+							SELCTL<='1';
+
+							DRW<='1';
+
+							STOP<='1';
+
+						END IF;
+
+						IF (W2='1') THEN
+
+							SBUS<='1';
+
+							SEL<="1110";
+
+							SELCTL<='1';
+
+							DRW<='1';
+
+							STOP<='1';
+
+						END IF;
+
+					END IF;
+
+				WHEN "011" =>                 --读寄存器
+
+					IF (W1='1') THEN
+
+						SEL<="0001";
+
+						SELCTL<='1';
+
+						STOP<='1';
+
+					END IF;
+
+					IF (W2='1') THEN
+
+						SEL<="1011";
+
+						SELCTL<='1';
+
+						STOP<='1';
+
+					END IF;
+
+				WHEN "010"=> --读存储器
+
+					IF (ST0='0') THEN
+
+						IF (W1='1') THEN
+
+							SBUS<='1';
+
+							LAR<='1';
+
+							STOP<='1';
+
+							SHORT<='1';
+
+							SELCTL<='1';
+
+							SST0<='1';
+
+						END IF;
+
+					END IF;
+
+					IF (ST0='1') THEN
+
+						IF (W1='1') THEN
+
+							MBUS<='1';
+
+							ARINC<='1';
+
+							STOP<='1';
+
+							SHORT<='1';
+
+							SELCTL<='1';
+
+						END IF;
+
+					END IF;
+
+				WHEN "001"=> --写存储器
+
+					IF (ST0='0') THEN
+
+						IF (W1='1') THEN
+LIBRARY ieee;
+
+USE ieee.std_logic_1164.all;
+
+ 
+
+ENTITY cpu IS
+
+PORT(SW:IN std_logic_vector(2 Downto 0);            --向量形式简洁易懂
+
+ IR:IN std_logic_vector(7 Downto 4);
+
+ W1,W2,W3:IN std_logic;
+
+ C,Z,CLR,T3:IN std_logic;
+
+ ARINC,CIN,DRW,LPC,LAR,LIR,LDZ,LDC,PCINC,PCADD,SELCTL,M,MEMW,STOP:OUT std_logic;
+
+ SHORT,LONG,ABUS,SBUS,MBUS:OUT std_logic;
+
+ S,SEL:OUT std_logic_vector(3 Downto 0));    
+
+END cpu;
+
+ 
+
+ARCHITECTURE cont OF cpu IS
+
+SIGNAL ST0:std_logic;
+
+SIGNAL SST0:std_logic;
+
+BEGIN
+
+PROCESS(ST0,SST0,SW,IR,CLR,T3,W1,W2,W3)   --敏感信号表
+
+BEGIN
+
+IF (CLR='0') THEN                     --clear信号
+
+ST0<='0';
+
+SST0<='0';
+
+CIN<='0';                             --初始值
+
+DRW<='0';
+
+LPC<='0';
+
+LAR<='0';
+
+LIR<='0';
+
+LDZ<='0';
+
+LDC<='0';
+
+PCINC<='0';
+
+PCADD<='0';
+
+SELCTL<='0';
+
+M<='0';
+
+S<="0000";
+
+SEL<="0000";
+
+MEMW<='0';
+
+STOP<='0';
+
+SHORT<='0';
+
+LONG<='0';
+
+ABUS<='0';
+
+SBUS<='0';
+
+MBUS<='0';
+
+ARINC<='0';
+
+ELSE
+
+CIN<='0';                              --初始值
+
+DRW<='0';
+
+LPC<='0';
+
+LAR<='0';
+
+LIR<='0';
+
+LDZ<='0';
+
+LDC<='0';
+
+PCINC<='0';
+
+PCADD<='0';
+
+SELCTL<='0';
+
+M<='0';
+
+S<="0000";
+
+SEL<="0000";
+
+MEMW<='0';
+
+STOP<='0';
+
+SHORT<='0';
+
+LONG<='0';
+
+ABUS<='0';
+
+SBUS<='0';
+
+MBUS<='0';
+
+ARINC<='0';
+
+SST0<=(NOT ST0)AND ((SW(2)AND(NOT(SW(1)))AND(NOT SW(0))AND W2)OR((NOT SW(2))AND SW(1)AND(NOT SW(0))AND W1)OR((NOT SW(2))
+
+         AND (NOT SW(1)) AND SW(0) AND W1));
+
+--用译码形式表示SST0
+
+IF(SST0='1' ) THEN
+
+IF (T3'EVENT AND (T3='0'))THEN --T3下降沿
+
+ST0<='1';
+
+END IF;
+
+END IF;
+
+CASE SW IS
+
+--根据硬连线控制器参考流程图采用流程的形式
+
+WHEN "100" =>   --写寄存器
+
+IF (ST0='0') THEN
+
+IF (W1='1') THEN
+
+SBUS<='1';
+
+SEL<="0011";
+
+SELCTL<='1';
+
+DRW<='1';
+
+STOP<='1';
+
+END IF;
+
+IF (W2='1') THEN
+
+SBUS<='1';
+
+SEL<="0100";
+
+SELCTL<='1';
+
+DRW<='1';
+
+STOP<='1';
+
+SST0<='1';
+
+END IF;
+
+END IF;
+
+IF (ST0='1') THEN
+
+   IF (W1='1') THEN
+
+SBUS<='1';
+
+SEL<="1001";
+
+SELCTL<='1';
+
+DRW<='1';
+
+STOP<='1';
+
+END IF;
+
+IF (W2='1') THEN
+
+SBUS<='1';
+
+SEL<="1110";
+
+SELCTL<='1';
+
+DRW<='1';
+
+STOP<='1';
+
+END IF;
+
+END IF;
+
+WHEN "011" =>                 --读寄存器
+
+IF (W1='1') THEN
+
+SEL<="0001";
+
+SELCTL<='1';
+
+STOP<='1';
+
+END IF;
+
+IF (W2='1') THEN
+
+SEL<="1011";
+
+SELCTL<='1';
+
+STOP<='1';
+
+END IF;
+
+WHEN "010"=> --读存储器
+
+IF (ST0='0') THEN
+
+IF (W1='1') THEN
+
+SBUS<='1';
+
+LAR<='1';
+
+STOP<='1';
+
+SHORT<='1';
+
+SELCTL<='1';
+
+SST0<='1';
+
+END IF;
+
+END IF;
+
+IF (ST0='1') THEN
+
+IF (W1='1') THEN
+
+MBUS<='1';
+
+ARINC<='1';
+
+STOP<='1';
+
+SHORT<='1';
+
+SELCTL<='1';
+
+END IF;
+
+END IF;
+
+WHEN "001"=> --写存储器
+
+IF (ST0='0') THEN
+
+IF (W1='1') THEN
+
+SBUS<='1';
+
+LAR<='1';
+
+STOP<='1';
+
+SHORT<='1';
+
+SELCTL<='1';
+
+SST0<='1';
+
+END IF;
+
+END IF;
+
+IF (ST0='1') THEN
+
+IF (W1='1') THEN
+
+SBUS<='1';
+
+MEMW<='1';
+
+ARINC<='1';
+
+STOP<='1';
+
+SHORT<='1';
+
+SELCTL<='1';
+
+END IF;
+
+END IF;
+
+WHEN "000"=> --取指
+
+IF (W1='1') THEN
+
+LIR<='1';
+
+PCINC<='1';
+
+END IF;
+
+CASE IR IS
+
+WHEN "0001"=> --ADD
+
+IF (W2='1') THEN
+
+S<="1001";
+
+CIN<='1';
+
+ABUS<='1';
+
+DRW<='1';
+
+LDZ<='1';
+
+LDC<='1';
+
+END IF;
+
+WHEN "0010"=> --SUB
+
+IF (W2='1') THEN
+
+S<="0110";
+
+ABUS<='1';
+
+DRW<='1';
+
+LDZ<='1';
+
+LDC<='1';
+
+END IF;
+
+WHEN "0011"=> --AND
+
+IF (W2='1') THEN
+
+M<='1';
+
+S<="1011";
+
+ABUS<='1';
+
+DRW<='1';
+
+LDZ<='1';
+
+END IF;
+
+WHEN "0100"=> --INC
+
+IF (W2='1') THEN
+
+S<="0000";
+
+ABUS<='1';
+
+DRW<='1';
+
+LDZ<='1';
+
+LDC<='1';
+
+END IF;
+
+WHEN "0101"=> --LD
+
+IF (W2='1') THEN
+
+M<='1';
+
+S<="1010";
+
+ABUS<='1';
+
+LAR<='1';
+
+LONG<='1';
+
+END IF;
+
+IF (W3='1') THEN
+
+DRW<='1';
+
+MBUS<='1';
+
+END IF;
+
+WHEN "0110"=> --ST
+
+IF (W2='1') THEN
+
+M<='1';
+
+S<="1111";
+
+ABUS<='1';
+
+LAR<='1';
+
+LONG<='1';
+
+END IF;
+
+IF (W3='1') THEN
+
+S<="1010";
+
+M<='1';
+
+ABUS<='1';
+
+MEMW<='1';
+
+END IF;
+
+WHEN "0111"=> --JC
+
+IF (W2='1') THEN
+
+IF (C='1') THEN
+
+PCADD<='1';
+
+END IF;
+
+END IF;
+
+WHEN "1000"=> --JZ
+
+IF (W2='1') THEN
+
+IF (Z='1') THEN
+
+PCADD<='1';
+
+END IF;
+
+END IF;
+
+WHEN "1001"=> --JMP
+
+IF (W2='1') THEN
+
+M<='1';
+
+S<="1111";
+
+ABUS<='1';
+
+LPC<='1';
+
+END IF;
+
+WHEN "1010"=> --OUT
+
+IF (W2='1') THEN
+
+M<='1';
+
+S<="1010";
+
+ABUS<='1';
+
+END IF;
+WHEN "1011"=> --ADD ITEMSELF
+
+IF (W2='1') THEN
+
+S<="1100";
+
+CIN<='1';
+
+ABUS<='1';
+
+DRW<='1';
+
+LDC<='1';
+
+LDZ<='1';
+
+END IF;
+
+WHEN "1100"=> --XOR
+
+IF (W2='1') THEN
+
+M<='1';
+
+S<="0110";
+
+ABUS<='1';
+
+DRW<='1';
+
+LDZ<='1';
+
+END IF;
+
+WHEN "1101"=> --OR
+
+IF (W2='1') THEN
+
+M<='1';
+
+S<="1110";
+
+ABUS<='1';
+
+DRW<='1';
+
+LDZ<='1';
+
+END IF;
+
+WHEN "1111"=> --WOR
+
+IF (W2='1') THEN
+
+M<='1';
+
+S<="1001";
+
+ABUS<='1';
+
+DRW<='1';
+
+LDZ<='1';
+
+END IF;
+
+WHEN "1110"=> --STP
+
+IF (W2='1') THEN
+
+STOP<='1';
+
+END IF;
+
+WHEN OTHERS=>SBUS<='0';
+
+END CASE;
+
+WHEN OTHERS=>SBUS<='0';
+
+END CASE;
+
+END IF;
+
+END PROCESS;
+
+END cont;
+							SBUS<='1';
+
+							LAR<='1';
+
+							STOP<='1';
+
+							SHORT<='1';
+
+							SELCTL<='1';
+
+							SST0<='1';
+
+						END IF;
+
+					END IF;
+
+					IF (ST0='1') THEN
+
+						IF (W1='1') THEN
+
+							SBUS<='1';
+
+							MEMW<='1';
+
+							ARINC<='1';
+
+							STOP<='1';
+
+							SHORT<='1';
+
+							SELCTL<='1';
+
+						END IF;
+
+					END IF;
+
+				WHEN "000"=> --取指模式
+
+					IF (W1='1') THEN --W1取指周期
+
+						LIR<='1';
+
+						PCINC<='1';
+
+					END IF;
+					--以下是IR7-IR4表示的各种操作
+					CASE IR IS
+
+					WHEN "0001"=> --ADD
+
+						IF (W2='1') THEN
+
+							S<="1001";
+
+							CIN<='1';
+
+							ABUS<='1';
+
+							DRW<='1';
+
+							LDZ<='1';
+
+							LDC<='1';
+
+						END IF;
+
+					WHEN "0010"=> --SUB
+
+						IF (W2='1') THEN
+
+							S<="0110";
+
+							ABUS<='1';
+
+							DRW<='1';
+
+							LDZ<='1';
+
+							LDC<='1';
+
+						END IF;
+
+					WHEN "0011"=> --AND
+
+						IF (W2='1') THEN
+
+							M<='1';
+
+							S<="1011";
+
+							ABUS<='1';
+
+							DRW<='1';
+
+							LDZ<='1';
+
+						END IF;
+
+					WHEN "0100"=> --INC
+
+						IF (W2='1') THEN
+
+							S<="0000";
+
+							ABUS<='1';
+
+							DRW<='1';
+
+							LDZ<='1';
+
+							LDC<='1';
+
+						END IF;
+
+					WHEN "0101"=> --LD
+
+						IF (W2='1') THEN
+
+							M<='1';
+
+							S<="1010";
+
+							ABUS<='1';
+
+							LAR<='1';
+
+							LONG<='1';
+
+						END IF;
+
+						IF (W3='1') THEN
+
+							DRW<='1';
+
+							MBUS<='1';
+
+						END IF;
+
+					WHEN "0110"=> --ST
+
+						IF (W2='1') THEN--在W2周期时做如下操作
+
+							M<='1';
+
+							S<="1111";
+
+							ABUS<='1';
+
+							LAR<='1';
+
+							LONG<='1';
+
+						END IF;
+
+						IF (W3='1') THEN--在W3周期时做如下操作
+
+							S<="1010";
+
+							M<='1';
+
+							ABUS<='1';
+
+							MEMW<='1';
+
+						END IF;
+
+					WHEN "0111"=> --JC
+
+						IF (W2='1') THEN
+
+							IF (C='1') THEN
+
+								PCADD<='1';
+
+							END IF;
+
+						END IF;
+
+					WHEN "1000"=> --JZ
+
+						IF (W2='1') THEN
+
+							IF (Z='1') THEN
+
+								PCADD<='1';
+
+							END IF;
+
+						END IF;
+
+					WHEN "1001"=> --JMP
+
+						IF (W2='1') THEN
+
+							M<='1';
+
+							S<="1111";
+
+							ABUS<='1';
+
+							LPC<='1';
+
+						END IF;
+
+					WHEN "1010"=> --OUT
+
+						IF (W2='1') THEN
+
+							M<='1';
+
+							S<="1010";
+
+							ABUS<='1';
+
+						END IF;
+					--以下为自定义指令部分
+					WHEN "1011"=> --自加
+
+						IF (W2='1') THEN
+
+							S<="1100";
+							
+							CIN<='1';
+
+							ABUS<='1';
+
+							DRW<='1';
+							
+							LDC<='1';
+
+							LDZ<='1';
+
+						END IF;
+						
+					WHEN "1100"=> --XOR
+
+						IF (W2='1') THEN
+
+							M<='1';
+
+							S<="0110";
+
+							ABUS<='1';
+
+							DRW<='1';
+
+							LDZ<='1';
+
+						END IF;
+
+					WHEN "1101"=> --OR
+
+						IF (W2='1') THEN
+
+							M<='1';
+
+							S<="1110";
+
+							ABUS<='1';
+
+							DRW<='1';
+
+							LDZ<='1';
+
+						END IF;
+						
+					WHEN "1111"=> --同或
+
+						IF (W2='1') THEN
+
+							M<='1';
+
+							S<="1001";
+
+							ABUS<='1';
+
+							DRW<='1';
+
+							LDZ<='1';
+
+						END IF;
+				--停止指令
+					WHEN "1110"=> --STP
+
+						IF (W2='1') THEN
+
+							STOP<='1';
+
+						END IF;
+
+					WHEN OTHERS=>SBUS<='0';
+
+					END CASE;
+
+				WHEN OTHERS=>SBUS<='0';
+
+				END CASE;
+
+			END IF;
+
+		END PROCESS;
+
+END hcu;

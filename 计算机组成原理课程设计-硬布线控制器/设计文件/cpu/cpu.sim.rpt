@@ -1,0 +1,286 @@
+Simulator report for cpu
+Thu Jun 20 09:24:43 2019
+Quartus II 64-Bit Version 9.1 Build 222 10/21/2009 SJ Full Version
+
+
+---------------------
+; Table of Contents ;
+---------------------
+  1. Legal Notice
+  2. Simulator Summary
+  3. Simulator Settings
+  4. Simulation Waveforms
+  5. Coverage Summary
+  6. Complete 1/0-Value Coverage
+  7. Missing 1-Value Coverage
+  8. Missing 0-Value Coverage
+  9. Simulator INI Usage
+ 10. Simulator Messages
+
+
+
+----------------
+; Legal Notice ;
+----------------
+Copyright (C) 1991-2009 Altera Corporation
+Your use of Altera Corporation's design tools, logic functions 
+and other software and tools, and its AMPP partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Altera Program License 
+Subscription Agreement, Altera MegaCore Function License 
+Agreement, or other applicable license agreement, including, 
+without limitation, that your use is for the sole purpose of 
+programming logic devices manufactured by Altera and sold by 
+Altera or its authorized distributors.  Please refer to the 
+applicable agreement for further details.
+
+
+
++-----------------------------------------------+
+; Simulator Summary                             ;
++-----------------------------+-----------------+
+; Type                        ; Value           ;
++-----------------------------+-----------------+
+; Simulation Start Time       ; 0 ps            ;
+; Simulation End Time         ; 1.0 us          ;
+; Simulation Netlist Size     ; 75 nodes        ;
+; Simulation Coverage         ;      38.67 %    ;
+; Total Number of Transitions ; 4377            ;
+; Simulation Breakpoints      ; 0               ;
+; Family                      ; MAX7000S        ;
+; Device                      ; EPM7128SLC84-15 ;
++-----------------------------+-----------------+
+
+
++-------------------------------------------------------------------------------------------------------------------------+
+; Simulator Settings                                                                                                      ;
++--------------------------------------------------------------------------------------------+------------+---------------+
+; Option                                                                                     ; Setting    ; Default Value ;
++--------------------------------------------------------------------------------------------+------------+---------------+
+; Simulation mode                                                                            ; Timing     ; Timing        ;
+; Start time                                                                                 ; 0 ns       ; 0 ns          ;
+; Simulation results format                                                                  ; CVWF       ;               ;
+; Vector input source                                                                        ; cpu.vwf    ;               ;
+; Add pins automatically to simulation output waveforms                                      ; On         ; On            ;
+; Check outputs                                                                              ; Off        ; Off           ;
+; Report simulation coverage                                                                 ; On         ; On            ;
+; Display complete 1/0 value coverage report                                                 ; On         ; On            ;
+; Display missing 1-value coverage report                                                    ; On         ; On            ;
+; Display missing 0-value coverage report                                                    ; On         ; On            ;
+; Detect setup and hold time violations                                                      ; Off        ; Off           ;
+; Detect glitches                                                                            ; Off        ; Off           ;
+; Disable timing delays in Timing Simulation                                                 ; Off        ; Off           ;
+; Generate Signal Activity File                                                              ; Off        ; Off           ;
+; Generate VCD File for PowerPlay Power Analyzer                                             ; Off        ; Off           ;
+; Group bus channels in simulation results                                                   ; Off        ; Off           ;
+; Preserve fewer signal transitions to reduce memory requirements                            ; On         ; On            ;
+; Trigger vector comparison with the specified mode                                          ; INPUT_EDGE ; INPUT_EDGE    ;
+; Disable setup and hold time violations detection in input registers of bi-directional pins ; Off        ; Off           ;
+; Overwrite Waveform Inputs With Simulation Outputs                                          ; On         ;               ;
+; Perform Glitch Filtering in Timing Simulation                                              ; Auto       ; Auto          ;
++--------------------------------------------------------------------------------------------+------------+---------------+
+
+
++----------------------+
+; Simulation Waveforms ;
++----------------------+
+Waveform report data cannot be output to ASCII.
+Please use Quartus II 64-Bit to view the waveform report data.
+
+
++--------------------------------------------------------------------+
+; Coverage Summary                                                   ;
++-----------------------------------------------------+--------------+
+; Type                                                ; Value        ;
++-----------------------------------------------------+--------------+
+; Total coverage as a percentage                      ;      38.67 % ;
+; Total nodes checked                                 ; 75           ;
+; Total output ports checked                          ; 75           ;
+; Total output ports with complete 1/0-value coverage ; 29           ;
+; Total output ports with no 1/0-value coverage       ; 46           ;
+; Total output ports with no 1-value coverage         ; 46           ;
+; Total output ports with no 0-value coverage         ; 46           ;
++-----------------------------------------------------+--------------+
+
+
+The following table displays output ports that toggle between 1 and 0 during simulation.
++------------------------------------------------------+
+; Complete 1/0-Value Coverage                          ;
++---------------+-------------------+------------------+
+; Node Name     ; Output Port Name  ; Output Port Type ;
++---------------+-------------------+------------------+
+; |cpu|LIR~4    ; |cpu|LIR~4        ; dataout          ;
+; |cpu|Mux37~7  ; |cpu|Mux37~7      ; dataout          ;
+; |cpu|Mux35~7  ; |cpu|Mux35~7      ; dataout          ;
+; |cpu|Mux38~10 ; |cpu|Mux38~10     ; dataout          ;
+; |cpu|Mux32~10 ; |cpu|Mux32~10     ; dataout          ;
+; |cpu|LIR~6    ; |cpu|LIR~6        ; dataout          ;
+; |cpu|Mux34~12 ; |cpu|Mux34~12     ; dataout          ;
+; |cpu|Mux22~11 ; |cpu|Mux22~11     ; dataout          ;
+; |cpu|Mux36~14 ; |cpu|Mux36~14     ; dataout          ;
+; |cpu|Mux31~13 ; |cpu|Mux31~13     ; dataout          ;
+; |cpu|Mux33~11 ; |cpu|Mux33~11     ; dataout          ;
+; |cpu|Mux33~12 ; |cpu|Mux33~12     ; pexpout          ;
+; |cpu|IR[4]    ; |cpu|IR[4]~corein ; dataout          ;
+; |cpu|IR[5]    ; |cpu|IR[5]~corein ; dataout          ;
+; |cpu|W1       ; |cpu|W1~corein    ; dataout          ;
+; |cpu|W2       ; |cpu|W2~corein    ; dataout          ;
+; |cpu|W3       ; |cpu|W3~corein    ; dataout          ;
+; |cpu|T3       ; |cpu|T3~corein    ; dataout          ;
+; |cpu|LIR      ; |cpu|LIR          ; padio            ;
+; |cpu|CIN      ; |cpu|CIN          ; padio            ;
+; |cpu|LDZ      ; |cpu|LDZ          ; padio            ;
+; |cpu|LDC      ; |cpu|LDC          ; padio            ;
+; |cpu|PCINC    ; |cpu|PCINC        ; padio            ;
+; |cpu|S[2]     ; |cpu|S[2]         ; padio            ;
+; |cpu|S[0]     ; |cpu|S[0]         ; padio            ;
+; |cpu|DRW      ; |cpu|DRW          ; padio            ;
+; |cpu|ABUS     ; |cpu|ABUS         ; padio            ;
+; |cpu|S[3]     ; |cpu|S[3]         ; padio            ;
+; |cpu|S[1]     ; |cpu|S[1]         ; padio            ;
++---------------+-------------------+------------------+
+
+
+The following table displays output ports that do not toggle to 1 during simulation.
++------------------------------------------------------+
+; Missing 1-Value Coverage                             ;
++---------------+-------------------+------------------+
+; Node Name     ; Output Port Name  ; Output Port Type ;
++---------------+-------------------+------------------+
+; |cpu|Mux40~3  ; |cpu|Mux40~3      ; dataout          ;
+; |cpu|Mux18~4  ; |cpu|Mux18~4      ; dataout          ;
+; |cpu|Mux26~3  ; |cpu|Mux26~3      ; dataout          ;
+; |cpu|Mux42~4  ; |cpu|Mux42~4      ; dataout          ;
+; |cpu|Mux20~8  ; |cpu|Mux20~8      ; dataout          ;
+; |cpu|Mux41~6  ; |cpu|Mux41~6      ; dataout          ;
+; |cpu|Mux25~10 ; |cpu|Mux25~10     ; dataout          ;
+; |cpu|Mux39~13 ; |cpu|Mux39~13     ; dataout          ;
+; |cpu|ST0      ; |cpu|ST0          ; dataout          ;
+; |cpu|Mux21~12 ; |cpu|Mux21~12     ; dataout          ;
+; |cpu|Mux23~12 ; |cpu|Mux23~12     ; dataout          ;
+; |cpu|Mux28~5  ; |cpu|Mux28~5      ; dataout          ;
+; |cpu|Mux17~7  ; |cpu|Mux17~7      ; dataout          ;
+; |cpu|Mux29~8  ; |cpu|Mux29~8      ; dataout          ;
+; |cpu|Mux27~7  ; |cpu|Mux27~7      ; dataout          ;
+; |cpu|Mux19~9  ; |cpu|Mux19~9      ; dataout          ;
+; |cpu|Mux16~8  ; |cpu|Mux16~8      ; dataout          ;
+; |cpu|Mux39~14 ; |cpu|Mux39~14     ; pexpout          ;
+; |cpu|Mux22~12 ; |cpu|Mux22~12     ; pexpout          ;
+; |cpu|Mux36~15 ; |cpu|Mux36~15     ; pexpout          ;
+; |cpu|Mux23~13 ; |cpu|Mux23~13     ; pexpout          ;
+; |cpu|Mux31~14 ; |cpu|Mux31~14     ; pexpout          ;
+; |cpu|SW[0]    ; |cpu|SW[0]~corein ; dataout          ;
+; |cpu|SW[1]    ; |cpu|SW[1]~corein ; dataout          ;
+; |cpu|SW[2]    ; |cpu|SW[2]~corein ; dataout          ;
+; |cpu|IR[6]    ; |cpu|IR[6]~corein ; dataout          ;
+; |cpu|IR[7]    ; |cpu|IR[7]~corein ; dataout          ;
+; |cpu|C        ; |cpu|C~corein     ; dataout          ;
+; |cpu|Z        ; |cpu|Z~corein     ; dataout          ;
+; |cpu|CLR      ; |cpu|CLR~corein   ; dataout          ;
+; |cpu|SHORT    ; |cpu|SHORT        ; padio            ;
+; |cpu|LONG     ; |cpu|LONG         ; padio            ;
+; |cpu|SEL[2]   ; |cpu|SEL[2]       ; padio            ;
+; |cpu|LPC      ; |cpu|LPC          ; padio            ;
+; |cpu|PCADD    ; |cpu|PCADD        ; padio            ;
+; |cpu|SEL[0]   ; |cpu|SEL[0]       ; padio            ;
+; |cpu|LAR      ; |cpu|LAR          ; padio            ;
+; |cpu|M        ; |cpu|M            ; padio            ;
+; |cpu|SELCTL   ; |cpu|SELCTL       ; padio            ;
+; |cpu|STOP     ; |cpu|STOP         ; padio            ;
+; |cpu|ARINC    ; |cpu|ARINC        ; padio            ;
+; |cpu|SEL[3]   ; |cpu|SEL[3]       ; padio            ;
+; |cpu|MEMW     ; |cpu|MEMW         ; padio            ;
+; |cpu|SBUS     ; |cpu|SBUS         ; padio            ;
+; |cpu|MBUS     ; |cpu|MBUS         ; padio            ;
+; |cpu|SEL[1]   ; |cpu|SEL[1]       ; padio            ;
++---------------+-------------------+------------------+
+
+
+The following table displays output ports that do not toggle to 0 during simulation.
++------------------------------------------------------+
+; Missing 0-Value Coverage                             ;
++---------------+-------------------+------------------+
+; Node Name     ; Output Port Name  ; Output Port Type ;
++---------------+-------------------+------------------+
+; |cpu|Mux40~3  ; |cpu|Mux40~3      ; dataout          ;
+; |cpu|Mux18~4  ; |cpu|Mux18~4      ; dataout          ;
+; |cpu|Mux26~3  ; |cpu|Mux26~3      ; dataout          ;
+; |cpu|Mux42~4  ; |cpu|Mux42~4      ; dataout          ;
+; |cpu|Mux20~8  ; |cpu|Mux20~8      ; dataout          ;
+; |cpu|Mux41~6  ; |cpu|Mux41~6      ; dataout          ;
+; |cpu|Mux25~10 ; |cpu|Mux25~10     ; dataout          ;
+; |cpu|Mux39~13 ; |cpu|Mux39~13     ; dataout          ;
+; |cpu|ST0      ; |cpu|ST0          ; dataout          ;
+; |cpu|Mux21~12 ; |cpu|Mux21~12     ; dataout          ;
+; |cpu|Mux23~12 ; |cpu|Mux23~12     ; dataout          ;
+; |cpu|Mux28~5  ; |cpu|Mux28~5      ; dataout          ;
+; |cpu|Mux17~7  ; |cpu|Mux17~7      ; dataout          ;
+; |cpu|Mux29~8  ; |cpu|Mux29~8      ; dataout          ;
+; |cpu|Mux27~7  ; |cpu|Mux27~7      ; dataout          ;
+; |cpu|Mux19~9  ; |cpu|Mux19~9      ; dataout          ;
+; |cpu|Mux16~8  ; |cpu|Mux16~8      ; dataout          ;
+; |cpu|Mux39~14 ; |cpu|Mux39~14     ; pexpout          ;
+; |cpu|Mux22~12 ; |cpu|Mux22~12     ; pexpout          ;
+; |cpu|Mux36~15 ; |cpu|Mux36~15     ; pexpout          ;
+; |cpu|Mux23~13 ; |cpu|Mux23~13     ; pexpout          ;
+; |cpu|Mux31~14 ; |cpu|Mux31~14     ; pexpout          ;
+; |cpu|SW[0]    ; |cpu|SW[0]~corein ; dataout          ;
+; |cpu|SW[1]    ; |cpu|SW[1]~corein ; dataout          ;
+; |cpu|SW[2]    ; |cpu|SW[2]~corein ; dataout          ;
+; |cpu|IR[6]    ; |cpu|IR[6]~corein ; dataout          ;
+; |cpu|IR[7]    ; |cpu|IR[7]~corein ; dataout          ;
+; |cpu|C        ; |cpu|C~corein     ; dataout          ;
+; |cpu|Z        ; |cpu|Z~corein     ; dataout          ;
+; |cpu|CLR      ; |cpu|CLR~corein   ; dataout          ;
+; |cpu|SHORT    ; |cpu|SHORT        ; padio            ;
+; |cpu|LONG     ; |cpu|LONG         ; padio            ;
+; |cpu|SEL[2]   ; |cpu|SEL[2]       ; padio            ;
+; |cpu|LPC      ; |cpu|LPC          ; padio            ;
+; |cpu|PCADD    ; |cpu|PCADD        ; padio            ;
+; |cpu|SEL[0]   ; |cpu|SEL[0]       ; padio            ;
+; |cpu|LAR      ; |cpu|LAR          ; padio            ;
+; |cpu|M        ; |cpu|M            ; padio            ;
+; |cpu|SELCTL   ; |cpu|SELCTL       ; padio            ;
+; |cpu|STOP     ; |cpu|STOP         ; padio            ;
+; |cpu|ARINC    ; |cpu|ARINC        ; padio            ;
+; |cpu|SEL[3]   ; |cpu|SEL[3]       ; padio            ;
+; |cpu|MEMW     ; |cpu|MEMW         ; padio            ;
+; |cpu|SBUS     ; |cpu|SBUS         ; padio            ;
+; |cpu|MBUS     ; |cpu|MBUS         ; padio            ;
+; |cpu|SEL[1]   ; |cpu|SEL[1]       ; padio            ;
++---------------+-------------------+------------------+
+
+
++---------------------+
+; Simulator INI Usage ;
++--------+------------+
+; Option ; Usage      ;
++--------+------------+
+
+
++--------------------+
+; Simulator Messages ;
++--------------------+
+Info: *******************************************************************
+Info: Running Quartus II 64-Bit Simulator
+    Info: Version 9.1 Build 222 10/21/2009 SJ Full Version
+    Info: Processing started: Thu Jun 20 09:24:42 2019
+Info: Command: quartus_sim --read_settings_files=on --write_settings_files=off cpu -c cpu
+Info: Using vector source file "C:/Users/zhang/Desktop/cpu/cpu.vwf"
+Info: Overwriting simulation input file with simulation results
+    Info: A backup of cpu.vwf called cpu.sim_ori.vwf has been created in the db folder
+Info: Option to preserve fewer signal transitions to reduce memory requirements is enabled
+    Info: Simulation has been partitioned into sub-simulations according to the maximum transition count determined by the engine. Transitions from memory will be flushed out to disk at the end of each sub-simulation to reduce memory requirements.
+Info: Simulation partitioned into 1 sub-simulations
+Info: Simulation coverage is      38.67 %
+Info: Number of transitions in simulation is 4377
+Info: Vector file cpu.vwf is saved in VWF text format. You can compress it into CVWF format in order to reduce file size. For more details please refer to the Quartus II Help.
+Info: Quartus II 64-Bit Simulator was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 4333 megabytes
+    Info: Processing ended: Thu Jun 20 09:24:43 2019
+    Info: Elapsed time: 00:00:01
+    Info: Total CPU time (on all processors): 00:00:01
+
+
